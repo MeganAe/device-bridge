@@ -1,0 +1,104 @@
+name: Builds manuels multiplateformes
+
+run-name: "Build ${{ inputs.platform }} v${{ inputs.app_version }} — @MeganAe"
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Système à construire
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - windows
+          - macos
+          - linux
+      app_version:
+        description: Version des paquets (exemple 0.2.0)
+        required: true
+        type: string
+        default: 0.1.0
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.platform }} · ${{ matrix.runner }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            runner: windows-2022
+          - platform: windows
+            runner: windows-2025
+          - platform: macos
+            runner: macos-14
+          - platform: macos
+            runner: macos-15
+          - platform: linux
+            runner: ubuntu-22.04
+          - platform: linux
+            runner: ubuntu-24.04
+    steps:
+      - name: Récupérer les sources
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Installer Python pour préparer les outils embarqués
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installer Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Installer les dépendances Linux
+        if: ${{ matrix.platform == 'linux' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Définir la version demandée
+        shell: bash
+        env:
+          APP_VERSION: ${{ inputs.app_version }}
+        run: node scripts/set-version.mjs "$APP_VERSION"
+
+      - name: Installer les dépendances JavaScript
+        run: npm ci
+
+      - name: Préparer ADB et scrcpy embarqués
+        run: python scripts/prepare_tools.py
+
+      - name: Construire l’application native
+        run: npm run build
+
+      - name: Conserver les paquets générés
+        uses: actions/upload-artifact@v4
+        with:
+          name: device-bridge-${{ matrix.platform }}-${{ matrix.runner }}-v${{ inputs.app_version }}
+          path: src-tauri/target/release/bundle/**/*
+          if-no-files-found: error
+          retention-days: 14

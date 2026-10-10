@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="fr" data-platform="windows">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f6f8">
+  <meta name="description" content="Contrôlez vos appareils Android depuis votre ordinateur.">
+  <title>Device Bridge</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-device" viewBox="0 0 24 24">
+      <rect x="6.5" y="2.5" width="11" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M10 5.5h4M10.5 18.5h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24">
+      <path d="M20 7v5h-5M4.5 10a7.5 7.5 0 0 1 13-3L20 9M4 17v-5h5m10.5 2a7.5 7.5 0 0 1-13 3L4 15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-usb" viewBox="0 0 24 24">
+      <path d="M12 19V5m0 0L9.5 7.5M12 5l2.5 2.5M12 12H7.5a2 2 0 0 0-2 2v1.5M12 15h4.5a2 2 0 0 1 2 2V19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="5.5" cy="18" r="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <rect x="16.5" y="19" width="4" height="3" rx=".7" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M12 3.5 10.7 5h2.6L12 3.5Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24">
+      <path d="M3.5 9a13 13 0 0 1 17 0M6.8 12.4a8 8 0 0 1 10.4 0M10 15.7a3.2 3.2 0 0 1 4 0M12 19.5h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="m19.4 13.5 1.1.9-1.2 2.1-1.4-.5a7.8 7.8 0 0 1-1.5.9l-.2 1.5h-2.4l-.4-1.4a7.8 7.8 0 0 1-1.7 0l-.8 1.2-2.1-1.2.4-1.4a7.8 7.8 0 0 1-.9-1.5l-1.5-.2v-2.4l1.4-.4a7.8 7.8 0 0 1 0-1.7l-1.2-.8 1.2-2.1 1.4.4a7.8 7.8 0 0 1 1.5-.9l.2-1.5h2.4l.4 1.4a7.8 7.8 0 0 1 1.7 0l.8-1.2 2.1 1.2-.4 1.4a7.8 7.8 0 0 1 .9 1.5l1.5.2v2.4l-1.4.4a7.8 7.8 0 0 1 0 1.7Z" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round" transform="translate(-1 -1)"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12.5 4.4 4.2L19 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="13" rx="1.7" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 21h8m-4-4v4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigation principale">
+      <div class="brand">
+        <span class="brand-mark"><img src="./assets/device-bridge-mark.png" alt="" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>Device Bridge</strong>
+          <span>Android · Bureau</span>
+        </span>
+      </div>
+
+      <div class="sidebar-rule"></div>
+      <div class="nav-section-title">Gestion</div>
+      <nav class="primary-nav">
+        <button class="nav-item is-active" type="button" data-view="devices" aria-current="page">
+          <svg aria-hidden="true"><use href="#i-device"></use></svg>
+          <span>Appareils</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-fill"></div>
+      <button class="nav-item preferences-link" type="button" data-view="preferences">
+        <svg aria-hidden="true"><use href="#i-settings"></use></svg>
+        <span>Outils intégrés</span>
+      </button>
+      <div class="sidebar-footer">
+        <span>Version <span id="sidebar-version">0.1.0</span></span>
+        <span class="footer-author">MeganAe</span>
+      </div>
+    </aside>
+
+    <main class="main-window">
+      <header class="page-toolbar">
+        <div class="page-heading">
+          <h1 id="page-title">Appareils</h1>
+          <p id="page-subtitle">Détectez et contrôlez vos appareils Android.</p>
+        </div>
+        <div class="toolbar-actions" id="device-toolbar-actions">
+          <button class="button button-secondary" type="button" id="refresh-button">
+            <svg aria-hidden="true"><use href="#i-refresh"></use></svg>
+            <span>Actualiser</span>
+          </button>
+          <button class="button button-primary" type="button" id="wifi-open-button">
+            <svg aria-hidden="true"><use href="#i-wifi"></use></svg>
+            <span>Connexion Wi‑Fi</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <section class="view" id="devices-view" aria-labelledby="page-title">
+          <div class="devices-layout">
+            <section class="device-list-panel" aria-labelledby="devices-heading">
+              <div class="panel-heading">
+                <div>
+                  <h2 id="devices-heading">Appareils connectés</h2>
+                  <p class="panel-caption" id="device-count">En attente de détection</p>
+                </div>
+              </div>
+
+              <div class="device-table" id="device-table">
+                <div class="table-header" aria-hidden="true">
+                  <span>Appareil</span>
+                  <span>Connexion</span>
+                  <span class="align-right">Action</span>
+                </div>
+                <div class="device-rows" id="device-rows"></div>
+                <div class="empty-state" id="empty-state">
+                  <svg class="empty-device-icon" aria-hidden="true"><use href="#i-device"></use></svg>
+                  <h3>Aucun appareil détecté</h3>
+                  <p>Connectez un téléphone Android par USB et autorisez le débogage USB sur son écran.</p>
+                </div>
+              </div>
+              <div class="operation-status" id="operation-status" role="status" aria-live="polite"></div>
+            </section>
+
+            <aside class="connection-panel" aria-labelledby="connection-heading">
+              <div class="panel-heading connection-heading">
+                <div>
+                  <h2 id="connection-heading">Connexion</h2>
+                  <p class="panel-caption">Choisissez un mode de connexion.</p>
+                </div>
+              </div>
+
+              <section class="connection-method">
+                <div class="method-title">
+                  <svg aria-hidden="true"><use href="#i-usb"></use></svg>
+                  <h3>Par câble USB</h3>
+                </div>
+                <p>Branchez le téléphone et acceptez la demande à l’écran.</p>
+                <button class="button button-secondary method-button" type="button" id="usb-search-button">Rechercher les appareils</button>
+              </section>
+
+              <div class="method-divider"></div>
+
+              <section class="connection-method">
+                <div class="method-title">
+                  <svg aria-hidden="true"><use href="#i-wifi"></use></svg>
+                  <h3>Sans fil</h3>
+                </div>
+                <p>Activez « Débogage sans fil » sur Android.</p>
+                <button class="text-action" type="button" id="wifi-method-button">Saisir les informations d’appairage</button>
+              </section>
+
+              <div class="method-divider"></div>
+              <button class="diagnostic-link" type="button" data-view="preferences">
+                <svg aria-hidden="true"><use href="#i-info"></use></svg>
+                <span>Outils intégrés</span>
+              </button>
+            </aside>
+          </div>
+
+          <footer class="page-status" id="runtime-status" role="status" aria-live="polite">
+            <span class="status-label">État</span>
+            <span id="runtime-status-text">Initialisation…</span>
+          </footer>
+        </section>
+
+        <section class="view preferences-view" id="preferences-view" aria-labelledby="page-title" hidden>
+          <div class="preferences-content">
+            <section class="diagnostic-section" aria-labelledby="page-title">
+              <div class="tool-list">
+                <div class="tool-row">
+                  <div>
+                    <strong>ADB</strong>
+                    <span>Connexion Android</span>
+                  </div>
+                  <div class="tool-value" id="adb-value">Vérification…</div>
+                </div>
+                <div class="tool-row">
+                  <div>
+                    <strong>scrcpy</strong>
+                    <span>Affichage et contrôle</span>
+                  </div>
+                  <div class="tool-value" id="scrcpy-value">Vérification…</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog class="pair-dialog" id="pair-dialog" aria-labelledby="pair-dialog-title">
+    <form method="dialog" class="dialog-topline">
+      <div>
+        <h2 id="pair-dialog-title">Connexion sans fil</h2>
+        <p>Les adresses et le code se trouvent dans « Débogage sans fil » sur Android.</p>
+      </div>
+      <button class="icon-button" type="submit" aria-label="Fermer">
+        <svg aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </form>
+
+    <div class="dialog-content">
+      <section class="pair-step">
+        <div class="step-title"><span class="step-number">1</span><h3>Appairer l’ordinateur</h3></div>
+        <label for="pair-endpoint">Adresse d’appairage</label>
+        <input id="pair-endpoint" type="text" inputmode="url" autocomplete="off" placeholder="192.168.1.25:37123">
+        <label for="pair-code">Code d’appairage</label>
+        <input id="pair-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456">
+        <button class="button button-primary dialog-action" type="button" id="pair-submit">Appairer</button>
+      </section>
+
+      <div class="method-divider"></div>
+
+      <section class="pair-step">
+        <div class="step-title"><span class="step-number">2</span><h3>Connecter l’appareil</h3></div>
+        <label for="connect-endpoint">Adresse de débogage</label>
+        <input id="connect-endpoint" type="text" inputmode="url" autocomplete="off" placeholder="192.168.1.25:41567">
+        <button class="button button-secondary dialog-action" type="button" id="connect-submit">Connecter</button>
+      </section>
+      <p class="dialog-status" id="pair-status" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <dialog class="pair-dialog display-dialog" id="display-dialog" aria-labelledby="display-dialog-title">
+    <form method="dialog" class="dialog-topline">
+      <div>
+        <h2 id="display-dialog-title">Réglages de l’appareil</h2>
+        <p id="display-device-name"></p>
+      </div>
+      <button class="icon-button" type="submit" aria-label="Fermer">
+        <svg aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </form>
+
+    <div class="dialog-content display-content">
+      <section class="setting-section" aria-labelledby="brightness-heading">
+        <div class="setting-heading">
+          <div>
+            <h3 id="brightness-heading">Luminosité</h3>
+            <p>Réglage de l’écran du téléphone.</p>
+          </div>
+          <output id="brightness-value" for="brightness-slider">—</output>
+        </div>
+        <div class="brightness-row">
+          <input id="brightness-slider" type="range" min="1" max="255" value="128" aria-label="Luminosité">
+        </div>
+        <label class="check-row auto-brightness-row" for="auto-brightness">
+          <input id="auto-brightness" type="checkbox">
+          <span>Luminosité automatique</span>
+        </label>
+      </section>
+
+      <div class="method-divider"></div>
+
+      <section class="setting-section" aria-labelledby="quality-heading">
+        <div class="setting-heading">
+          <div>
+            <h3 id="quality-heading">Qualité du miroir</h3>
+            <p>Équilibrez netteté, fluidité et consommation réseau.</p>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <label class="field-label" for="max-size">Résolution maximale
+            <select id="max-size">
+              <option value="1280">1280 px</option>
+              <option value="1600">1600 px</option>
+              <option value="1920" selected>1920 px</option>
+              <option value="2560">2560 px</option>
+              <option value="">Résolution native</option>
+            </select>
+          </label>
+          <label class="field-label" for="max-fps">Images par seconde
+            <select id="max-fps">
+              <option value="30">30 FPS</option>
+              <option value="45">45 FPS</option>
+              <option value="60" selected>60 FPS</option>
+              <option value="90">90 FPS</option>
+              <option value="120">120 FPS</option>
+              <option value="">Sans limite</option>
+            </select>
+          </label>
+          <label class="field-label" for="bitrate-mbps">Débit vidéo
+            <select id="bitrate-mbps">
+              <option value="2">2 Mbit/s</option>
+              <option value="4">4 Mbit/s</option>
+              <option value="8" selected>8 Mbit/s</option>
+              <option value="12">12 Mbit/s</option>
+              <option value="16">16 Mbit/s</option>
+              <option value="24">24 Mbit/s</option>
+            </select>
+          </label>
+          <label class="field-label" for="video-codec">Codec vidéo
+            <select id="video-codec">
+              <option value="h264" selected>H.264 — compatible</option>
+              <option value="h265">H.265 — efficace</option>
+              <option value="av1">AV1</option>
+              <option value="vp8">VP8</option>
+              <option value="vp9">VP9</option>
+            </select>
+          </label>
+        </div>
+        <p class="settings-note">La compatibilité de l’audio et des codecs dépend de la version Android et du téléphone.</p>
+      </section>
+
+      <div class="method-divider"></div>
+
+      <section class="setting-section media-options" aria-label="Audio et enregistrement">
+        <label class="check-row" for="audio-enabled">
+          <input id="audio-enabled" type="checkbox" checked>
+          <span>Audio du téléphone</span>
+        </label>
+        <label class="check-row" for="record-video">
+          <input id="record-video" type="checkbox">
+          <span>Enregistrer la session en MP4</span>
+        </label>
+      </section>
+
+      <div class="dialog-footer">
+        <button class="button button-secondary" type="button" id="screenshot-button">Capture d’écran</button>
+        <button class="button button-primary" type="button" id="mirror-start-button">Démarrer le miroir</button>
+      </div>
+      <p class="dialog-status display-status" id="display-status" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>

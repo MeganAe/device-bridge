@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capacité minimale pour la fenêtre principale de Device Bridge.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

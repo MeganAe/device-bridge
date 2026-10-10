@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Device Bridge",
+  "version": "0.1.0",
+  "identifier": "com.meganae.devicebridge",
+  "build": {
+    "beforeDevCommand": "npm run serve",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Device Bridge",
+        "width": 1240,
+        "height": 820,
+        "minWidth": 940,
+        "minHeight": 660,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "resources": {
+      "resources/tools/": "tools/",
+      "../LICENSE": "LICENSE",
+      "../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Utility",
+    "shortDescription": "Contrôler des appareils Android depuis le bureau",
+    "longDescription": "Interface de bureau multiplateforme pour détecter et contrôler des appareils Android avec ADB et scrcpy."
+  }
+}
