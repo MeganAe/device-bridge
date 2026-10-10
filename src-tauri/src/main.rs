@@ -2,8 +2,18 @@
 
 mod commands;
 
+use tauri::Manager;
+
 fn main() {
     tauri::Builder::default()
+        .setup(|app| {
+            // Recenter after Tauri creates the native window, not just in the
+            // initial config, so the first launch starts in the display center.
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.center();
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::host_platform,
             commands::tool_status,

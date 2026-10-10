@@ -59,7 +59,7 @@ npm run dev
 
 La liste complète des prérequis Tauri par système est dans la [documentation officielle](https://v2.tauri.app/start/prerequisites/).
 
-Pour produire l’installateur local, exécuter `scripts/build.ps1` sous Windows ou `scripts/build.sh` sous macOS/Linux. Les paquets se trouvent sous `src-tauri/target/release/bundle/`. Ces scripts ne font pas de cross-compilation : il faut construire chaque cible sur le système correspondant.
+Pour produire l’installateur local, exécuter `scripts/build.ps1` sous Windows ou `scripts/build.sh` sous macOS/Linux. Les paquets se trouvent sous `src-tauri/target/release/bundle/`. Ces scripts ne font pas de cross-compilation : il faut construire chaque cible sur le système correspondant. En mode développement (`npm run dev`), le terminal qui lance Tauri reste ouvert normalement ; les paquets installables, eux, ne doivent pas ouvrir de console. ADB sert à détecter l’appareil ; scrcpy ne démarre que sur action explicite de l’utilisateur.
 
 ## Aperçu de l’interface
 

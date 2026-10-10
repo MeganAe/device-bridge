@@ -10,7 +10,7 @@ Device Bridge expose ces commandes dans la fenêtre **Réglages** de chaque appa
 - **Capture** : capture PNG enregistrée dans `Pictures/Device Bridge` du compte utilisateur.
 - **Enregistrement** : option MP4 enregistrée dans `Videos/Device Bridge` sous Windows/Linux et `Movies/Device Bridge` sous macOS. Fermer la fenêtre scrcpy termine la session et son enregistrement.
 
-Ces commandes sont transmises à l’ADB et à scrcpy intégrés dans les paquets de publication. L’interface ne propose pas d’exécution de commande shell arbitraire.
+Ces commandes sont transmises à l’ADB et à scrcpy intégrés dans les paquets de publication. scrcpy n’est démarré que lorsque l’utilisateur choisit explicitement « Afficher l’écran » ou « Démarrer le miroir » ; la vérification des outils contrôle leur présence sur disque sans exécuter `scrcpy --version`. Sous Windows, les processus ADB et scrcpy sont lancés sans fenêtre de console. L’interface ne propose pas d’exécution de commande shell arbitraire.
 
 ## Notes issues de la documentation officielle
 

@@ -394,5 +394,6 @@ if (!isDesktopApp) {
   setRuntime('Aperçu web — connexion indisponible.');
 } else {
   refreshDevices();
-  window.setInterval(refreshDevices, 8000);
+  // Quietly refresh attached devices; this no longer probes or starts scrcpy.
+  window.setInterval(refreshDevices, 15000);
 }

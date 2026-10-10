@@ -19,7 +19,7 @@ on:
         description: Version des paquets (exemple 0.2.0)
         required: true
         type: string
-        default: 0.1.0
+        default: 0.1.1
 
 permissions:
   contents: read

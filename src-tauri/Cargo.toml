@@ -1,6 +1,6 @@
 [package]
 name = "device-bridge"
-version = "0.1.0"
+version = "0.1.1"
 description = "Application de bureau multiplateforme pour les appareils Android"
 authors = ["MeganAe"]
 license = "MIT"

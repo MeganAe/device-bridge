@@ -117,6 +117,16 @@ fn resolve_tool(app: &AppHandle, name: &str) -> Option<(PathBuf, bool)> {
     find_on_path(name).map(|path| (path, false))
 }
 
+#[cfg(target_os = "windows")]
+fn hide_console(command: &mut Command) {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    command.creation_flags(CREATE_NO_WINDOW);
+}
+
+#[cfg(not(target_os = "windows"))]
+fn hide_console(_command: &mut Command) {}
+
 fn output_text(output: &Output) -> String {
     let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
     if !stdout.is_empty() {
@@ -125,37 +135,20 @@ fn output_text(output: &Output) -> String {
     String::from_utf8_lossy(&output.stderr).trim().to_string()
 }
 
-fn probe_tool(app: &AppHandle, name: &str, args: &[&str]) -> (Option<String>, bool) {
-    let Some((path, bundled)) = resolve_tool(app, name) else {
-        return (None, false);
-    };
-    let version = Command::new(path)
-        .args(args)
-        .output()
-        .ok()
-        .map(|output| {
-            let text = output_text(&output);
-            if text.is_empty() {
-                "Présent".to_string()
-            } else {
-                text.lines().next().unwrap_or("Présent").to_string()
-            }
-        })
-        .or_else(|| Some("Présent".to_string()));
-    (version, bundled)
-}
-
 #[tauri::command]
 pub fn tool_status(app: AppHandle) -> ToolStatus {
-    let (adb_version, adb_bundled) = probe_tool(&app, "adb", &["version"]);
-    let (scrcpy_version, scrcpy_bundled) = probe_tool(&app, "scrcpy", &["--version"]);
+    // Only inspect executable paths here. Running `scrcpy --version` during
+    // every device refresh can flash a Windows console even though the user
+    // did not ask to start a mirror session.
+    let adb = resolve_tool(&app, "adb");
+    let scrcpy = resolve_tool(&app, "scrcpy");
     ToolStatus {
-        adb_found: adb_version.is_some(),
-        adb_version,
-        adb_bundled,
-        scrcpy_found: scrcpy_version.is_some(),
-        scrcpy_version,
-        scrcpy_bundled,
+        adb_found: adb.is_some(),
+        adb_version: None,
+        adb_bundled: adb.as_ref().map(|(_, bundled)| *bundled).unwrap_or(false),
+        scrcpy_found: scrcpy.is_some(),
+        scrcpy_version: None,
+        scrcpy_bundled: scrcpy.as_ref().map(|(_, bundled)| *bundled).unwrap_or(false),
     }
 }
 
@@ -166,7 +159,9 @@ fn adb_path(app: &AppHandle) -> Result<PathBuf, String> {
 }
 
 fn adb_output(app: &AppHandle, args: &[&str]) -> Result<Output, String> {
-    let output = Command::new(adb_path(app)?)
+    let mut command = Command::new(adb_path(app)?);
+    hide_console(&mut command);
+    let output = command
         .args(args)
         .output()
         .map_err(|error| format!("Impossible de lancer ADB : {error}"))?;
@@ -386,6 +381,9 @@ pub fn launch_mirror(
     };
 
     let mut command = Command::new(scrcpy);
+    // Keep the console process hidden on Windows while still allowing scrcpy's
+    // normal SDL mirror window to appear after an explicit user action.
+    hide_console(&mut command);
     if bundled {
         // scrcpy resolves adb by name; prioritize the copy bundled with the app.
         if let Some((adb, true)) = resolve_tool(&app, "adb") {
