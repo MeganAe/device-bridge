@@ -1,6 +1,6 @@
 name: Builds manuels multiplateformes
 
-run-name: "Build ${{ inputs.platform }} v${{ inputs.app_version }} — @MeganAe"
+run-name: "Build ${{ inputs.platform }} v${{ inputs.app_version }} — Metoushela Walker"
 
 on:
   workflow_dispatch:

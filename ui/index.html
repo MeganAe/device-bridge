@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f5f6f8">
+  <meta name="app-version" content="0.1.1">
   <meta name="description" content="Contrôlez vos appareils Android depuis votre ordinateur.">
   <title>Device Bridge</title>
   <link rel="stylesheet" href="./styles.css">
@@ -33,6 +34,15 @@
     <symbol id="i-close" viewBox="0 0 24 24">
       <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
     </symbol>
+    <symbol id="i-minimize" viewBox="0 0 24 24">
+      <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-maximize" viewBox="0 0 24 24">
+      <rect x="5.5" y="5.5" width="13" height="13" rx=".7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    </symbol>
+    <symbol id="i-restore" viewBox="0 0 24 24">
+      <path d="M8 7V5.8c0-.4.3-.8.8-.8h9.4c.4 0 .8.3.8.8v9.4c0 .4-.3.8-.8.8H17M6 8h9c.6 0 1 .4 1 1v9c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1V9c0-.6.4-1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="i-info" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/>
       <path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -46,10 +56,30 @@
     </symbol>
   </svg>
 
-  <div class="app-shell">
+  <div class="app-frame">
+    <header class="app-titlebar" id="app-titlebar">
+      <div class="titlebar-brand" data-tauri-drag-region>
+        <img src="./assets/device-bridge-mark.png" alt="" aria-hidden="true">
+        <span>Device Bridge</span>
+      </div>
+      <nav class="menu-bar" id="app-menu-bar" role="menubar" aria-label="Barre de menus"></nav>
+      <div class="titlebar-drag-space" data-tauri-drag-region aria-hidden="true"></div>
+      <div class="window-controls" id="window-controls" role="group" aria-label="Contrôles de la fenêtre">
+        <button class="window-control" id="window-minimize" type="button" aria-label="Réduire" title="Réduire">
+          <svg aria-hidden="true"><use href="#i-minimize"></use></svg>
+        </button>
+        <button class="window-control" id="window-maximize" type="button" aria-label="Agrandir" title="Agrandir">
+          <svg aria-hidden="true"><use href="#i-maximize"></use></svg>
+        </button>
+        <button class="window-control window-control-close" id="window-close" type="button" aria-label="Fermer" title="Fermer">
+          <svg aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-shell">
     <aside class="sidebar" aria-label="Navigation principale">
       <div class="brand">
-        <span class="brand-mark"><img src="./assets/device-bridge-mark.png" alt="" aria-hidden="true"></span>
         <span class="brand-copy">
           <strong>Device Bridge</strong>
           <span>Android · Bureau</span>
@@ -63,16 +93,19 @@
           <svg aria-hidden="true"><use href="#i-device"></use></svg>
           <span>Appareils</span>
         </button>
+        <button class="nav-item" type="button" data-view="settings">
+          <svg aria-hidden="true"><use href="#i-settings"></use></svg>
+          <span>Paramètres</span>
+        </button>
+        <button class="nav-item" type="button" data-view="documentation">
+          <svg aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>Documentation</span>
+        </button>
       </nav>
 
       <div class="sidebar-fill"></div>
-      <button class="nav-item preferences-link" type="button" data-view="preferences">
-        <svg aria-hidden="true"><use href="#i-settings"></use></svg>
-        <span>Outils intégrés</span>
-      </button>
       <div class="sidebar-footer">
-        <span>Version <span id="sidebar-version">0.1.1</span></span>
-        <span class="footer-author">MeganAe</span>
+        <span class="footer-author">Metoushela Walker</span>
       </div>
     </aside>
 
@@ -118,7 +151,7 @@
                   <p>Connectez un téléphone Android par USB et autorisez le débogage USB sur son écran.</p>
                 </div>
               </div>
-              <div class="operation-status" id="operation-status" role="status" aria-live="polite"></div>
+              <div class="visually-hidden" id="operation-status" role="status" aria-live="polite"></div>
             </section>
 
             <aside class="connection-panel" aria-labelledby="connection-heading">
@@ -149,45 +182,198 @@
                 <button class="text-action" type="button" id="wifi-method-button">Saisir les informations d’appairage</button>
               </section>
 
-              <div class="method-divider"></div>
-              <button class="diagnostic-link" type="button" data-view="preferences">
-                <svg aria-hidden="true"><use href="#i-info"></use></svg>
-                <span>Outils intégrés</span>
-              </button>
             </aside>
           </div>
 
-          <footer class="page-status" id="runtime-status" role="status" aria-live="polite">
-            <span class="status-label">État</span>
-            <span id="runtime-status-text">Initialisation…</span>
-          </footer>
         </section>
 
-        <section class="view preferences-view" id="preferences-view" aria-labelledby="page-title" hidden>
+        <section class="view preferences-view" id="settings-view" aria-labelledby="page-title" hidden>
           <div class="preferences-content">
-            <section class="diagnostic-section" aria-labelledby="page-title">
+            <section class="settings-page-section">
+              <div class="preferences-header">
+                <h2>Général</h2>
+                <p>Réglez le comportement de Device Bridge sur cet ordinateur.</p>
+              </div>
+              <div class="settings-list">
+                <label class="settings-row" for="theme-setting">
+                  <span><strong>Apparence</strong><small>Thème de l’interface</small></span>
+                  <select id="theme-setting">
+                    <option value="system">Système</option>
+                    <option value="light">Clair</option>
+                    <option value="dark">Sombre</option>
+                  </select>
+                </label>
+                <label class="settings-row" for="auto-refresh-setting">
+                  <span><strong>Détection automatique</strong><small>Rechercher les appareils connectés en arrière-plan</small></span>
+                  <input id="auto-refresh-setting" type="checkbox" checked>
+                </label>
+                <label class="settings-row" for="refresh-interval-setting">
+                  <span><strong>Fréquence de détection</strong><small>Intervalle entre deux recherches automatiques</small></span>
+                  <select id="refresh-interval-setting">
+                    <option value="10">10 secondes</option>
+                    <option value="15" selected>15 secondes</option>
+                    <option value="30">30 secondes</option>
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <section class="settings-page-section">
+              <div class="preferences-header">
+                <h2>Notifications système</h2>
+                <p>Utilise le centre de notifications de Windows/macOS/Linux, pas une notification de navigateur.</p>
+              </div>
+              <div class="settings-list">
+                <label class="settings-row" for="notify-device-setting">
+                  <span><strong>Nouvel appareil connecté</strong><small>Prévenir lorsqu’un appareil apparaît</small></span>
+                  <input id="notify-device-setting" type="checkbox" checked>
+                </label>
+                <label class="settings-row" for="notify-capture-setting">
+                  <span><strong>Capture enregistrée</strong><small>Confirmer la sauvegarde d’une capture d’écran</small></span>
+                  <input id="notify-capture-setting" type="checkbox" checked>
+                </label>
+                <label class="settings-row" for="notify-connection-setting">
+                  <span><strong>Connexion sans fil</strong><small>Confirmer l’appairage ou la connexion réussie</small></span>
+                  <input id="notify-connection-setting" type="checkbox" checked>
+                </label>
+              </div>
+            </section>
+
+            <section class="settings-page-section">
+              <div class="preferences-header">
+                <h2>Application</h2>
+                <p>Device Bridge · Licence MIT · Metoushela Walker</p>
+              </div>
               <div class="tool-list">
                 <div class="tool-row">
-                  <div>
-                    <strong>ADB</strong>
-                    <span>Connexion Android</span>
-                  </div>
+                  <div><strong>ADB</strong><span>Détection et commandes Android</span></div>
                   <div class="tool-value" id="adb-value">Vérification…</div>
-                </div>
-                <div class="tool-row">
-                  <div>
-                    <strong>scrcpy</strong>
-                    <span>Affichage et contrôle</span>
-                  </div>
-                  <div class="tool-value" id="scrcpy-value">Vérification…</div>
                 </div>
               </div>
             </section>
           </div>
         </section>
+
+        <section class="view documentation-view" id="documentation-view" aria-labelledby="page-title" hidden>
+          <div class="documentation-content">
+            <div class="preferences-header">
+              <h2>Guide de démarrage</h2>
+              <p>Les étapes essentielles pour connecter et piloter un appareil Android.</p>
+            </div>
+            <section class="guide-block">
+              <h3>Connexion USB</h3>
+              <ol>
+                <li>Sur Android, activez les Options pour les développeurs puis le Débogage USB.</li>
+                <li>Branchez le téléphone et acceptez l’empreinte de l’ordinateur sur l’écran Android.</li>
+                <li>Choisissez <strong>Rechercher les appareils</strong> si le téléphone n’apparaît pas.</li>
+              </ol>
+            </section>
+            <section class="guide-block">
+              <h3>Connexion sans fil</h3>
+              <ol>
+                <li>Reliez l’ordinateur et le téléphone au même réseau local.</li>
+                <li>Dans Options pour les développeurs, ouvrez Débogage sans fil puis choisissez Appairer avec un code.</li>
+                <li>Recopiez l’adresse d’appairage et le code à six chiffres, puis saisissez l’adresse de débogage après l’appairage.</li>
+              </ol>
+            </section>
+            <section class="guide-block">
+              <h3>Affichage et luminosité</h3>
+              <p>Les réglages d’affichage s’ouvrent depuis le bouton de paramètres de l’appareil. Les captures sont enregistrées dans <code>Pictures/Device Bridge</code>.</p>
+            </section>
+            <section class="guide-block">
+              <h3>Fichiers et diagnostics</h3>
+              <ul>
+                <li><strong>Installer un APK…</strong> installe un fichier APK choisi sur l’appareil connecté.</li>
+                <li><strong>Envoyer un fichier…</strong> copie le fichier vers le dossier Android Download avec progression.</li>
+                <li><strong>Récupérer un fichier…</strong> accepte un chemin Android absolu, par exemple <code>/sdcard/Download/rapport.pdf</code>.</li>
+                <li><strong>Logcat</strong> montre les journaux en direct ; le terminal ADB exécute une commande après confirmation. Vérifiez toute commande avant de l’envoyer.</li>
+                <li>Les captures et notifications se configurent dans Paramètres ; l’enregistrement vidéo se règle depuis le bouton de paramètres de l’appareil.</li>
+                <li>La vérification des mises à jour compare la version à la dernière publication GitHub et ouvre sa page sur demande ; rien n’est installé automatiquement.</li>
+              </ul>
+            </section>
+            <section class="guide-block">
+              <h3>Dépannage rapide</h3>
+              <ul>
+                <li><strong>Autorisation requise :</strong> déverrouillez le téléphone et acceptez la demande de débogage USB.</li>
+                <li><strong>Installateur bloqué sur AdbWinApi.dll :</strong> quittez Device Bridge, puis fermez ses processus ADB avant de réessayer.</li>
+                <li><strong>Fenêtre noire :</strong> vérifiez que Microsoft Edge WebView2 Runtime est installé, puis relancez l’application.</li>
+              </ul>
+            </section>
+          </div>
+        </section>
       </div>
+
+      <section class="logcat-panel" id="logcat-panel" aria-labelledby="logcat-heading" hidden>
+        <header class="logcat-header">
+          <div>
+            <h2 id="logcat-heading">Journaux ADB</h2>
+            <p id="logcat-state">Sélectionnez un appareil connecté.</p>
+          </div>
+          <div class="logcat-header-actions">
+            <button class="icon-button" id="logcat-collapse" type="button" aria-label="Réduire le panneau" title="Réduire le panneau">−</button>
+            <button class="icon-button" id="logcat-close" type="button" aria-label="Fermer les journaux" title="Fermer">×</button>
+          </div>
+        </header>
+        <div class="logcat-controls">
+          <input id="logcat-filter" type="search" placeholder="Filtrer les journaux…" aria-label="Filtrer les journaux">
+          <select id="logcat-level" aria-label="Niveau minimum">
+            <option value="V">Tous les niveaux</option>
+            <option value="D">Debug et supérieur</option>
+            <option value="I">Info et supérieur</option>
+            <option value="W">Avertissement et supérieur</option>
+            <option value="E">Erreur uniquement</option>
+          </select>
+          <button class="button button-secondary" id="logcat-pause" type="button">Pause</button>
+          <button class="button button-secondary" id="logcat-copy" type="button">Copier</button>
+          <button class="button button-secondary" id="logcat-clear" type="button">Effacer</button>
+        </div>
+        <div class="logcat-lines" id="logcat-lines" role="log" aria-live="off"></div>
+      </section>
     </main>
+    </div>
   </div>
+
+  <div class="menu-layer" id="menu-layer" aria-hidden="true"></div>
+  <div class="toast-container" id="toast-container" aria-live="polite" aria-relevant="additions" aria-atomic="false"></div>
+
+  <dialog class="pair-dialog progress-dialog" id="progress-dialog" aria-labelledby="progress-title">
+    <div class="dialog-content">
+      <h2 id="progress-title">Opération en cours</h2>
+      <p id="progress-message">Veuillez patienter…</p>
+      <progress class="busy-progress" id="progress-bar" max="100" aria-label="Opération en cours"></progress>
+      <p id="progress-detail" class="progress-detail"></p>
+    </div>
+  </dialog>
+
+  <dialog class="pair-dialog" id="retrieve-dialog" aria-labelledby="retrieve-title">
+    <div class="dialog-topline">
+      <div><h2 id="retrieve-title">Récupérer un fichier</h2><p>Copie le fichier de l’appareil vers l’ordinateur.</p></div>
+      <button class="icon-button" id="retrieve-close" type="button" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"></use></svg></button>
+    </div>
+    <div class="dialog-content">
+      <label class="field-label" for="retrieve-remote-path">Chemin Android absolu
+        <input class="dialog-text-input" id="retrieve-remote-path" type="text" placeholder="/sdcard/Download/fichier.pdf" autocomplete="off">
+      </label>
+      <p class="dialog-status" id="retrieve-status" role="status" aria-live="polite"></p>
+      <button class="button button-primary dialog-action" id="retrieve-submit" type="button">Choisir le dossier et récupérer</button>
+    </div>
+  </dialog>
+
+  <dialog class="pair-dialog terminal-dialog" id="terminal-dialog" aria-labelledby="terminal-title">
+    <div class="dialog-topline">
+      <div><h2 id="terminal-title">Terminal ADB</h2><p id="terminal-device-label"></p></div>
+      <button class="icon-button" id="terminal-close" type="button" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"></use></svg></button>
+    </div>
+    <div class="dialog-content terminal-content">
+      <p class="terminal-warning">La commande est exécutée sur l’appareil Android avec les privilèges de débogage USB. Vérifiez-la avant de l’envoyer.</p>
+      <div class="terminal-command-row">
+        <input id="terminal-command" type="text" autocomplete="off" spellcheck="false" placeholder="Ex. getprop ro.build.version.release" aria-label="Commande à exécuter sur Android">
+        <button class="button button-primary" id="terminal-run" type="button">Exécuter</button>
+      </div>
+      <div class="terminal-output-header"><strong>Sortie</strong><button class="text-action" id="terminal-clear" type="button">Effacer</button></div>
+      <pre class="terminal-output" id="terminal-output" aria-live="polite"></pre>
+    </div>
+  </dialog>
 
   <dialog class="pair-dialog" id="pair-dialog" aria-labelledby="pair-dialog-title">
     <form method="dialog" class="dialog-topline">
@@ -321,6 +507,26 @@
         <button class="button button-primary" type="button" id="mirror-start-button">Démarrer le miroir</button>
       </div>
       <p class="dialog-status display-status" id="display-status" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <dialog class="pair-dialog about-dialog" id="about-dialog" aria-labelledby="about-dialog-title">
+    <form method="dialog" class="dialog-topline">
+      <div>
+        <h2 id="about-dialog-title">À propos de Device Bridge</h2>
+        <p>Contrôlez vos appareils Android depuis le bureau.</p>
+      </div>
+      <button class="icon-button" type="submit" aria-label="Fermer">
+        <svg aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </form>
+    <div class="dialog-content about-content">
+      <div class="about-brand">
+        <img src="./assets/device-bridge-mark.png" alt="">
+        <div><strong>Device Bridge</strong><span>Version <span id="about-version">0.1.1</span></span></div>
+      </div>
+      <p>Logiciel libre publié sous licence MIT.</p>
+      <p>Créé par <strong>Metoushela Walker</strong>.</p>
     </div>
   </dialog>
 

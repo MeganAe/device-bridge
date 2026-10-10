@@ -30,7 +30,9 @@ fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
 
 const htmlPath = 'ui/index.html';
 const html = fs.readFileSync(htmlPath, 'utf8');
-const updatedHtml = html.replace(/(<span id="sidebar-version">)[^<]+(<\/span>)/, `$1${version}$2`);
+const updatedHtml = html
+  .replace(/(<meta name="app-version" content=")[^"]+(">)/, `$1${version}$2`)
+  .replace(/(<span id="about-version">)[^<]+(<\/span>)/, `$1${version}$2`);
 fs.writeFileSync(htmlPath, updatedHtml);
 
 console.log(`Version définie sur ${version} dans les métadonnées et l’interface.`);

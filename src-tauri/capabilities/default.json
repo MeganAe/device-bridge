@@ -3,5 +3,20 @@
   "identifier": "default",
   "description": "Capacité minimale pour la fenêtre principale de Device Bridge.",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-unmaximize",
+    "core:window:allow-center",
+    "core:window:allow-set-size",
+    "core:window:allow-set-min-size",
+    "core:window:allow-set-fullscreen",
+    "core:window:allow-start-dragging",
+    "notification:default",
+    "dialog:default",
+    "opener:default"
+  ]
 }

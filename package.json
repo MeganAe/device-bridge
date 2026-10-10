@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "private": true,
   "description": "Application de bureau multiplateforme pour les appareils Android",
-  "author": "MeganAe",
+  "author": "Metoushela Walker",
   "license": "MIT",
   "scripts": {
     "dev": "tauri dev",

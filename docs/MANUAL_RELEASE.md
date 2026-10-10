@@ -2,7 +2,7 @@
 
 ## Lancer une construction depuis GitHub
 
-1. Pousser le dépôt sur le GitHub de **@MeganAe**.
+1. Pousser le dépôt sur le GitHub du projet (profil du propriétaire : [Metoushela Walker](https://github.com/MeganAe)).
 2. Ouvrir l’onglet **Actions**.
 3. Choisir **Builds manuels multiplateformes**.
 4. Cliquer **Run workflow**.

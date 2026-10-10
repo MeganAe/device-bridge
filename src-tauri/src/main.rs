@@ -6,15 +6,28 @@ use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
-        .setup(|app| {
-            // Recenter after Tauri creates the native window, not just in the
-            // initial config, so the first launch starts in the display center.
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.center();
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .manage(commands::ManagedProcesses::default())
+        .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+                if let Some(processes) = window.try_state::<commands::ManagedProcesses>() {
+                    processes.terminate_all();
+                }
             }
-            Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::install_apk,
+            commands::send_file_to_device,
+            commands::retrieve_file_from_device,
+            commands::adb_shell_command,
+            commands::disconnect_device,
+            commands::reboot_device,
+            commands::start_logcat,
+            commands::stop_logcat,
+            commands::clear_logcat,
+            commands::stop_mirror,
             commands::host_platform,
             commands::tool_status,
             commands::list_devices,

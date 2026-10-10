@@ -16,16 +16,14 @@
         "title": "Device Bridge",
         "width": 1000,
         "height": 700,
-        "minWidth": 800,
-        "minHeight": 560,
-        "center": true,
+        "center": false,
         "resizable": true,
         "fullscreen": false,
-        "decorations": true
+        "decorations": false
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src ipc: http://ipc.localhost"
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src ipc: http://ipc.localhost https://api.github.com"
     }
   },
   "bundle": {
@@ -44,6 +42,11 @@
     ],
     "category": "Utility",
     "shortDescription": "Contrôler des appareils Android depuis le bureau",
-    "longDescription": "Interface de bureau multiplateforme pour détecter et contrôler des appareils Android avec ADB et scrcpy."
+    "longDescription": "Interface de bureau multiplateforme pour détecter et contrôler des appareils Android.",
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico"
+      }
+    }
   }
 }
