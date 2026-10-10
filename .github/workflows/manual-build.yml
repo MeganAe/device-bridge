@@ -25,26 +25,48 @@ permissions:
   contents: read
 
 jobs:
+  prepare:
+    name: Sélectionner les cibles
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.targets.outputs.matrix }}
+    steps:
+      - name: Préparer la matrice selon le système choisi
+        id: targets
+        shell: bash
+        env:
+          SELECTED_PLATFORM: ${{ inputs.platform }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          targets = [
+              {"platform": "windows", "runner": "windows-2022"},
+              {"platform": "windows", "runner": "windows-2025"},
+              {"platform": "macos", "runner": "macos-14"},
+              {"platform": "macos", "runner": "macos-15"},
+              {"platform": "linux", "runner": "ubuntu-22.04"},
+              {"platform": "linux", "runner": "ubuntu-24.04"},
+          ]
+          selected = os.environ["SELECTED_PLATFORM"]
+          if selected != "all":
+              targets = [target for target in targets if target["platform"] == selected]
+          if not targets:
+              raise SystemExit(f"Aucune cible de build valide pour : {selected}")
+
+          matrix = {"include": targets}
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+          PY
+
   build:
+    needs: prepare
     name: ${{ matrix.platform }} · ${{ matrix.runner }}
-    if: ${{ inputs.platform == 'all' || inputs.platform == matrix.platform }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - platform: windows
-            runner: windows-2022
-          - platform: windows
-            runner: windows-2025
-          - platform: macos
-            runner: macos-14
-          - platform: macos
-            runner: macos-15
-          - platform: linux
-            runner: ubuntu-22.04
-          - platform: linux
-            runner: ubuntu-24.04
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
       - name: Récupérer les sources
         uses: actions/checkout@v4
