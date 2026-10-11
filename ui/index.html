@@ -336,6 +336,28 @@
   <div class="menu-layer" id="menu-layer" aria-hidden="true"></div>
   <div class="toast-container" id="toast-container" aria-live="polite" aria-relevant="additions" aria-atomic="false"></div>
 
+  <dialog class="pair-dialog mirror-dialog" id="mirror-dialog" aria-labelledby="mirror-title">
+    <header class="dialog-topline">
+      <div>
+        <h2 id="mirror-title">Miroir Device Bridge</h2>
+        <p id="mirror-state">Connexion à l’appareil…</p>
+      </div>
+      <div class="mirror-header-actions">
+        <button class="button button-secondary" id="mirror-record-button" type="button" disabled>Enregistrer WebM</button>
+        <button class="icon-button" id="mirror-close-button" type="button" aria-label="Fermer le miroir"><svg aria-hidden="true"><use href="#i-close"></use></svg></button>
+      </div>
+    </header>
+    <div class="mirror-stage" id="mirror-stage">
+      <p class="mirror-empty" id="mirror-empty">En attente de la première capture…</p>
+      <img id="mirror-image" alt="Écran Android en miroir" draggable="false">
+    </div>
+    <footer class="mirror-footer">
+      <span id="mirror-resolution">Image envoyée par ADB · capture adaptative</span>
+      <span>Appuyez ou faites glisser sur l’image pour contrôler le téléphone.</span>
+    </footer>
+    <canvas class="mirror-recording-canvas" id="mirror-recording-canvas" aria-hidden="true"></canvas>
+  </dialog>
+
   <dialog class="pair-dialog progress-dialog" id="progress-dialog" aria-labelledby="progress-title">
     <div class="dialog-content">
       <h2 id="progress-title">Opération en cours</h2>

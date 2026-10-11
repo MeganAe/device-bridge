@@ -83,9 +83,6 @@ function showToast(message, tone = 'info') {
   toast.className = 'app-toast';
   toast.dataset.tone = tone || 'info';
   toast.setAttribute('role', tone === 'error' ? 'alert' : 'status');
-  const marker = document.createElement('span');
-  marker.className = 'toast-marker';
-  marker.setAttribute('aria-hidden', 'true');
   const text = document.createElement('span');
   text.className = 'toast-message';
   text.textContent = cleanMessage;
@@ -95,7 +92,7 @@ function showToast(message, tone = 'info') {
   close.setAttribute('aria-label', 'Fermer la notification');
   close.textContent = '×';
   close.addEventListener('click', () => dismissToast(toast));
-  toast.append(marker, text, close);
+  toast.append(text, close);
   toastContainer.append(toast);
   requestAnimationFrame(() => toast.classList.add('is-visible'));
   window.setTimeout(() => dismissToast(toast), 4800);
@@ -1280,12 +1277,69 @@ function setupContextMenu() {
   });
 }
 
+function setupDraggableDialogs() {
+  const dialogs = Array.from(document.querySelectorAll('dialog'));
+  for (const dialog of dialogs) {
+    const handle = dialog.querySelector('.dialog-topline') || dialog.querySelector('.progress-dialog h2');
+    if (!handle) continue;
+    handle.classList.add('dialog-drag-handle');
+    handle.setAttribute('title', 'Faire glisser pour déplacer cette fenêtre');
+
+    handle.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || !dialog.open || event.target.closest?.('button, input, textarea, select, a')) return;
+      const initial = dialog.getBoundingClientRect();
+      const offsetX = event.clientX - initial.left;
+      const offsetY = event.clientY - initial.top;
+      dialog.style.position = 'fixed';
+      dialog.style.margin = '0';
+      dialog.style.right = 'auto';
+      dialog.style.bottom = 'auto';
+      dialog.style.left = `${initial.left}px`;
+      dialog.style.top = `${initial.top}px`;
+
+      const move = (moveEvent) => {
+        if (moveEvent.pointerId !== event.pointerId) return;
+        const maxLeft = Math.max(0, window.innerWidth - dialog.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - Math.min(dialog.offsetHeight, 56));
+        const left = Math.max(0, Math.min(maxLeft, moveEvent.clientX - offsetX));
+        const top = Math.max(0, Math.min(maxTop, moveEvent.clientY - offsetY));
+        dialog.style.left = `${left}px`;
+        dialog.style.top = `${top}px`;
+        moveEvent.preventDefault();
+      };
+      const stop = (stopEvent) => {
+        if (stopEvent.pointerId !== event.pointerId) return;
+        document.removeEventListener('pointermove', move, true);
+        document.removeEventListener('pointerup', stop, true);
+        document.removeEventListener('pointercancel', stop, true);
+      };
+      document.addEventListener('pointermove', move, true);
+      document.addEventListener('pointerup', stop, true);
+      document.addEventListener('pointercancel', stop, true);
+      try { handle.setPointerCapture(event.pointerId); } catch { /* Document-level pointer handlers remain as fallback. */ }
+      event.preventDefault();
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    for (const dialog of dialogs) {
+      if (!dialog.open || !dialog.style.left || !dialog.style.top) continue;
+      const maxLeft = Math.max(0, window.innerWidth - dialog.offsetWidth);
+      const maxTop = Math.max(0, window.innerHeight - Math.min(dialog.offsetHeight, 56));
+      const rect = dialog.getBoundingClientRect();
+      dialog.style.left = `${Math.max(0, Math.min(maxLeft, rect.left))}px`;
+      dialog.style.top = `${Math.max(0, Math.min(maxTop, rect.top))}px`;
+    }
+  });
+}
+
 setupPlatformStyle();
 setupSettings();
 setupWindowControls();
 setupMenus();
 setupNavigation();
 setupContextMenu();
+setupDraggableDialogs();
 $('#refresh-button').addEventListener('click', () => { void refreshDevices(); });
 $('#usb-search-button').addEventListener('click', () => { void refreshDevices(); });
 $('#wifi-open-button').addEventListener('click', openPairDialog);

@@ -204,7 +204,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display
 }
 .app-toast {
   display: grid;
-  grid-template-columns: 4px minmax(0, 1fr) 26px;
+  grid-template-columns: minmax(0, 1fr) 26px;
   align-items: stretch;
   min-height: 48px;
   overflow: hidden;
@@ -219,9 +219,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display
   pointer-events: auto;
 }
 .app-toast.is-visible { opacity: 1; transform: translateY(0); }
-.toast-marker { background: var(--accent); }
-.app-toast[data-tone="success"] .toast-marker { background: #16834a; }
-.app-toast[data-tone="error"] .toast-marker { background: var(--danger); }
 .toast-message { align-self: center; padding: 10px 11px; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
 .toast-dismiss { border: 0; background: transparent; color: var(--text-muted); font-size: 18px; cursor: pointer; }
 .toast-dismiss:hover { background: var(--surface-hover); color: var(--text-primary); }
@@ -254,7 +251,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display
 .app-shell.is-sidebar-collapsed .nav-item span,
 .app-shell.is-sidebar-collapsed .sidebar-footer { display: none; }
 .app-shell.is-sidebar-collapsed .nav-item { justify-content: center; width: 42px; padding: 0; }
-.app-shell.is-sidebar-collapsed .nav-item.is-active::before { left: 0; }
 
 .sidebar {
   display: flex;
@@ -316,17 +312,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display
   background: #e9edf2;
   border-color: #e1e5ea;
   font-weight: 600;
-}
-.nav-item.is-active::before {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  content: "";
-  width: 3px;
-  height: 19px;
-  transform: translateY(-50%);
-  border-radius: 0 2px 2px 0;
-  background: var(--accent);
 }
 .sidebar-fill { flex: 1; min-height: 24px; }
 .sidebar-footer {
@@ -659,6 +644,9 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display
 }
 .dialog-topline h2 { margin: 0; font-size: 17px; font-weight: 650; }
 .dialog-topline p { margin: 5px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+.dialog-drag-handle { cursor: move; touch-action: none; user-select: none; }
+.dialog-drag-handle button, .dialog-drag-handle input, .dialog-drag-handle textarea, .dialog-drag-handle select, .dialog-drag-handle a { cursor: pointer; touch-action: auto; user-select: auto; }
+.progress-dialog h2.dialog-drag-handle { cursor: move; touch-action: none; user-select: none; }
 .icon-button {
   display: grid;
   place-items: center;
@@ -719,6 +707,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display
 .terminal-command-row input { min-width: 0; min-height: 36px; flex: 1; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-small); background: var(--surface-window); color: var(--text-primary); font-family: Consolas, monospace; font-size: 12px; }
 .terminal-output-header { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; color: var(--text-secondary); font-size: 11px; }
 .terminal-output { min-height: 140px; max-height: 35vh; margin: 6px 0 0; overflow: auto; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-small); background: var(--surface-subtle); color: var(--text-primary); font: 11px/1.5 Consolas, "Cascadia Code", monospace; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; }
+.mirror-dialog { display: flex; width: min(980px, calc(100vw - 40px)); max-height: calc(100vh - 40px); flex-direction: column; }
+.mirror-dialog .dialog-topline { align-items: center; flex: none; }
+.mirror-header-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.mirror-header-actions .icon-button { margin: 0; }
+.mirror-stage { display: grid; min-height: 300px; max-height: calc(100vh - 170px); flex: 1; place-items: center; overflow: hidden; background: #090b0e; }
+.mirror-stage img { display: none; max-width: 100%; max-height: calc(100vh - 170px); object-fit: contain; touch-action: none; user-select: none; }
+.mirror-stage.has-frame img { display: block; }
+.mirror-empty { padding: 24px; color: #d3d8df; font-size: 13px; text-align: center; }
+.mirror-stage.has-frame .mirror-empty { display: none; }
+.mirror-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; padding: 10px 16px; color: var(--text-muted); font-size: 11px; }
+.mirror-recording-canvas { position: fixed; top: 0; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
 .display-dialog { width: min(620px, calc(100vw - 36px)); }
 .about-dialog { width: min(420px, calc(100vw - 36px)); }
@@ -778,7 +777,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display
   .sidebar { align-items: center; padding-left: 8px; padding-right: 8px; }
   .brand, .brand-copy, .sidebar-rule, .nav-section-title, .nav-item span, .sidebar-footer { display: none; }
   .nav-item { justify-content: center; width: 42px; padding: 0; }
-  .nav-item.is-active::before { left: 0; }
   .devices-layout { grid-template-columns: 1fr; }
 }
 

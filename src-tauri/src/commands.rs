@@ -2,18 +2,22 @@ use serde::Serialize;
 use std::{
     collections::HashMap,
     env, fs,
-    io::{BufRead, BufReader, Read},
+    io::{BufRead, BufReader, Read, Write},
     path::PathBuf,
     process::{Child, Command, Output, Stdio},
-    sync::Mutex,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
     thread,
-    time::{SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
 
 #[derive(Default)]
 pub struct ManagedProcesses {
     children: Mutex<HashMap<String, Child>>,
+    mirrors: Mutex<HashMap<String, Arc<AtomicBool>>>,
 }
 
 impl ManagedProcesses {
@@ -36,6 +40,22 @@ impl ManagedProcesses {
         }
     }
 
+    fn start_mirror(&self, key: String, stop: Arc<AtomicBool>) -> Result<(), String> {
+        let mut mirrors = self.mirrors.lock().map_err(|_| "État du miroir indisponible.".to_string())?;
+        if let Some(previous) = mirrors.insert(key, stop) {
+            previous.store(true, Ordering::Relaxed);
+        }
+        Ok(())
+    }
+
+    fn stop_mirror(&self, key: &str) {
+        if let Ok(mut mirrors) = self.mirrors.lock() {
+            if let Some(stop) = mirrors.remove(key) {
+                stop.store(true, Ordering::Relaxed);
+            }
+        }
+    }
+
     pub fn terminate_all(&self) {
         if let Ok(mut children) = self.children.lock() {
             for child in children.values_mut() {
@@ -43,6 +63,12 @@ impl ManagedProcesses {
                 let _ = child.wait();
             }
             children.clear();
+        }
+        if let Ok(mut mirrors) = self.mirrors.lock() {
+            for stop in mirrors.values() {
+                stop.store(true, Ordering::Relaxed);
+            }
+            mirrors.clear();
         }
     }
 }
@@ -53,6 +79,11 @@ impl Drop for ManagedProcesses {
             for child in children.values_mut() {
                 let _ = child.kill();
                 let _ = child.wait();
+            }
+        }
+        if let Ok(mirrors) = self.mirrors.get_mut() {
+            for stop in mirrors.values() {
+                stop.store(true, Ordering::Relaxed);
             }
         }
     }
@@ -632,3 +663,164 @@ pub fn capture_screenshot(app: AppHandle, serial: String) -> Result<String, Stri
     Ok(file.to_string_lossy().to_string())
 }
 
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct MirrorFrame {
+    serial: String,
+    png_base64: String,
+    width: u32,
+    height: u32,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct MirrorStreamError {
+    serial: String,
+    message: String,
+}
+
+fn base64_encode(bytes: &[u8]) -> String {
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut encoded = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let a = chunk[0] as usize;
+        let b = chunk.get(1).copied().unwrap_or(0) as usize;
+        let c = chunk.get(2).copied().unwrap_or(0) as usize;
+        encoded.push(TABLE[a >> 2] as char);
+        encoded.push(TABLE[((a & 0x03) << 4) | (b >> 4)] as char);
+        encoded.push(if chunk.len() > 1 { TABLE[((b & 0x0f) << 2) | (c >> 6)] as char } else { '=' });
+        encoded.push(if chunk.len() > 2 { TABLE[c & 0x3f] as char } else { '=' });
+    }
+    encoded
+}
+
+fn png_dimensions(png: &[u8]) -> Option<(u32, u32)> {
+    if png.len() < 24 || !png.starts_with(b"\x89PNG\r\n\x1a\n") {
+        return None;
+    }
+    let width = u32::from_be_bytes(png[16..20].try_into().ok()?);
+    let height = u32::from_be_bytes(png[20..24].try_into().ok()?);
+    (width > 0 && height > 0).then_some((width, height))
+}
+
+#[tauri::command]
+pub fn start_mirror_stream(
+    app: AppHandle,
+    processes: State<'_, ManagedProcesses>,
+    serial: String,
+    frame_interval_ms: Option<u16>,
+) -> Result<(), String> {
+    validate_serial(&serial)?;
+    let interval = Duration::from_millis(frame_interval_ms.unwrap_or(250).clamp(150, 1000) as u64);
+    let stop = Arc::new(AtomicBool::new(false));
+    processes.start_mirror(format!("mirror:{serial}"), Arc::clone(&stop))?;
+
+    thread::spawn(move || {
+        while !stop.load(Ordering::Relaxed) {
+            let started = Instant::now();
+            match adb_output(&app, &["-s", serial.as_str(), "exec-out", "screencap", "-p"]) {
+                Ok(output) => {
+                    if let Some((width, height)) = png_dimensions(&output.stdout) {
+                        let frame = MirrorFrame {
+                            serial: serial.clone(),
+                            png_base64: base64_encode(&output.stdout),
+                            width,
+                            height,
+                        };
+                        let _ = app.emit("mirror-frame", frame);
+                    } else {
+                        let _ = app.emit("mirror-error", MirrorStreamError {
+                            serial: serial.clone(),
+                            message: "Android n’a pas renvoyé une image PNG valide.".to_string(),
+                        });
+                        break;
+                    }
+                }
+                Err(error) => {
+                    let _ = app.emit("mirror-error", MirrorStreamError { serial: serial.clone(), message: error });
+                    break;
+                }
+            }
+            let remaining = interval.saturating_sub(started.elapsed());
+            if !remaining.is_zero() {
+                thread::sleep(remaining);
+            }
+        }
+        let _ = app.emit("mirror-ended", serial);
+    });
+    Ok(())
+}
+
+#[tauri::command]
+pub fn stop_mirror_stream(processes: State<'_, ManagedProcesses>, serial: String) -> Result<(), String> {
+    validate_serial(&serial)?;
+    processes.stop_mirror(&format!("mirror:{serial}"));
+    Ok(())
+}
+
+fn validate_touch_point(x: u32, y: u32) -> Result<(), String> {
+    if x > 32_767 || y > 32_767 {
+        return Err("Coordonnée tactile hors limites.".to_string());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn mirror_tap(app: AppHandle, serial: String, x: u32, y: u32) -> Result<(), String> {
+    validate_serial(&serial)?;
+    validate_touch_point(x, y)?;
+    let x = x.to_string();
+    let y = y.to_string();
+    adb_output(&app, &["-s", serial.as_str(), "shell", "input", "tap", x.as_str(), y.as_str()])?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn mirror_swipe(
+    app: AppHandle,
+    serial: String,
+    x1: u32,
+    y1: u32,
+    x2: u32,
+    y2: u32,
+    duration_ms: u32,
+) -> Result<(), String> {
+    validate_serial(&serial)?;
+    validate_touch_point(x1, y1)?;
+    validate_touch_point(x2, y2)?;
+    if !(50..=3000).contains(&duration_ms) {
+        return Err("Durée de glissement invalide.".to_string());
+    }
+    let x1 = x1.to_string();
+    let y1 = y1.to_string();
+    let x2 = x2.to_string();
+    let y2 = y2.to_string();
+    let duration = duration_ms.to_string();
+    adb_output(&app, &[
+        "-s", serial.as_str(), "shell", "input", "swipe",
+        x1.as_str(), y1.as_str(), x2.as_str(), y2.as_str(), duration.as_str(),
+    ])?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn append_recording_chunk(file_path: String, bytes: Vec<u8>, first_chunk: bool) -> Result<(), String> {
+    let path = PathBuf::from(file_path);
+    if path.extension().and_then(|extension| extension.to_str()).map(|extension| extension.eq_ignore_ascii_case("webm")) != Some(true) {
+        return Err("Choisissez un fichier vidéo WebM (.webm).".to_string());
+    }
+    let parent = path.parent().ok_or_else(|| "Dossier de destination invalide.".to_string())?;
+    if !parent.is_dir() {
+        return Err("Le dossier de destination n’existe pas.".to_string());
+    }
+    let mut file = fs::OpenOptions::new()
+        .create(first_chunk)
+        .write(true)
+        .truncate(first_chunk)
+        .append(!first_chunk)
+        .open(&path)
+        .map_err(|error| format!("Impossible d’ouvrir le fichier vidéo : {error}"))?;
+    file.write_all(&bytes).map_err(|error| format!("Impossible d’écrire le fichier vidéo : {error}"))?;
+    Ok(())
+}
