@@ -9,28 +9,26 @@ Application de bureau pour détecter et contrôler des appareils Android depuis 
 ## Fonctions présentes dans le code
 
 - Détection des appareils Android par USB, appairage et connexion au débogage sans fil.
-- Miroir et contrôle interactif avec scrcpy ; réglages par appareil pour la résolution maximale, les FPS, le débit, le codec et l’audio. Les préférences vidéo sont conservées localement sur l’ordinateur.
+- Moteur de miroir Device Bridge en cours de développement. Les actions miroir et enregistrement sont désactivées tant que le moteur maison n’est pas prêt ; aucun moteur tiers n’est lancé. Voir [`docs/MIRROR_ENGINE.md`](docs/MIRROR_ENGINE.md).
 - Réglage de luminosité Android en mode manuel ou automatique.
-- Capture d’écran PNG dans `Pictures/Device Bridge` et enregistrement MP4 dans `Videos/Device Bridge` (Windows/Linux) ou `Movies/Device Bridge` (macOS). Détails et limites : [`docs/DEVICE_CONTROLS.md`](docs/DEVICE_CONTROLS.md).
-- ADB et scrcpy **embarqués dans les paquets publiés** : l’utilisateur final n’a pas à les installer séparément.
+- Capture d’écran PNG dans `Pictures/Device Bridge`. L’enregistrement vidéo sera activé avec le moteur maison.
+- ADB Android SDK Platform-Tools est embarqué pour la détection, les commandes et les transferts. Aucun outil tiers de miroir vidéo n’est livré.
 - Fenêtre sans décorations natives, contrôles de fenêtre intégrés, taille de démarrage calculée depuis la zone de travail du moniteur et barres de défilement masquées sans désactiver le scroll.
 - Paramètres d’apparence, de détection automatique et de notifications système natives, ainsi qu’une page de guide intégrée.
 - Installation d’APK, envoi/récupération de fichiers avec progression ADB, flux logcat filtrable et terminal ADB avec confirmation avant chaque commande.
 - Vérification des publications GitHub (sans téléchargement ni mise à jour automatique).
 - Workflow GitHub Actions manuel pour générer des paquets par système et version de runner.
 
-Le workflow récupère l’archive officielle de scrcpy **5.0.1**, vérifie son SHA‑256 et l’ajoute aux ressources Tauri. Cette archive contient scrcpy et ADB pour la cible de build. Les binaires téléchargés ne sont pas conservés dans le dépôt source ; les notices amont sont conservées dans le paquet. scrcpy est publié sous Apache-2.0 sur son [dépôt officiel](https://github.com/Genymobile/scrcpy).
+Le workflow récupère uniquement Android SDK Platform-Tools **37.0.1** depuis Google, vérifie la somme SHA-1 publiée dans les métadonnées du SDK, puis n’embarque que les outils et bibliothèques nécessaires à ADB. Les binaires téléchargés ne sont pas conservés dans le dépôt source ; les notices amont sont incluses aux ressources.
 
-Le brief produit le plus récent conserve scrcpy et ADB comme moteur intégré : les binaires sont embarqués dans les paquets, et scrcpy ne démarre que sur action explicite. Détails : [`docs/MIRROR_ENGINE.md`](docs/MIRROR_ENGINE.md).
-
-La disponibilité de l’audio dépend notamment de la version Android (scrcpy le prend en charge à partir d’Android 11) et les codecs proposés dépendent des encodeurs du téléphone. Le réglage de luminosité peut également varier selon le fabricant. Les macros et l’assistance à distance restent hors du périmètre actuel. La vérification des mises à jour ouvre la page GitHub d’une nouvelle publication ; l’installation doit être faite manuellement. L’aperçu navigateur montre seulement l’interface ; il ne peut pas accéder aux appareils USB.
+Le miroir propriétaire n’est pas encore implémenté : les contrôles vidéo affichent leur indisponibilité au lieu de lancer un substitut. Le réglage de luminosité peut varier selon le fabricant. Les macros et l’assistance à distance restent hors du périmètre actuel. La vérification des mises à jour ouvre la page GitHub d’une nouvelle publication ; l’installation doit être faite manuellement. L’aperçu navigateur montre seulement l’interface ; il ne peut pas accéder aux appareils USB.
 
 ## Documentation
 
 - [Guide utilisateur](docs/USER_GUIDE.md) — connexions USB/Wi‑Fi, miroir et sécurité.
 - [Paramètres](docs/APP_SETTINGS.md) — apparence, actualisation et notifications système.
 - [Dépannage](docs/TROUBLESHOOTING.md) — appareil non détecté, écran noir et erreur d’installation Windows.
-- [Architecture du moteur de miroir](docs/MIRROR_ENGINE.md) — état actuel et choix requis pour le remplacement de scrcpy.
+- [Architecture du moteur de miroir](docs/MIRROR_ENGINE.md) — état actuel et étapes de développement du moteur maison.
 - [Contrôles de l’appareil](docs/DEVICE_CONTROLS.md) — luminosité, vidéo, audio et captures.
 - [Builds manuels](docs/MANUAL_RELEASE.md) — compilation multi-plateforme.
 
@@ -74,7 +72,7 @@ npm run dev
 
 La liste complète des prérequis Tauri par système est dans la [documentation officielle](https://v2.tauri.app/start/prerequisites/).
 
-Pour produire l’installateur local, exécuter `scripts/build.ps1` sous Windows ou `scripts/build.sh` sous macOS/Linux. Les paquets se trouvent sous `src-tauri/target/release/bundle/`. Ces scripts ne font pas de cross-compilation : il faut construire chaque cible sur le système correspondant. En mode développement (`npm run dev`), le terminal qui lance Tauri reste ouvert normalement ; les paquets installables, eux, ne doivent pas ouvrir de console. ADB sert à détecter l’appareil ; scrcpy ne démarre que sur action explicite de l’utilisateur.
+Pour produire l’installateur local, exécuter `scripts/build.ps1` sous Windows ou `scripts/build.sh` sous macOS/Linux. Les paquets se trouvent sous `src-tauri/target/release/bundle/`. Ces scripts ne font pas de cross-compilation : il faut construire chaque cible sur le système correspondant. En mode développement (`npm run dev`), le terminal qui lance Tauri reste ouvert normalement ; les paquets installables, eux, ne doivent pas ouvrir de console. ADB sert aux commandes Android ; le miroir maison sera intégré après développement et validation.
 
 ## Aperçu de l’interface
 

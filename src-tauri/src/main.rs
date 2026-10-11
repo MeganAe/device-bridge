@@ -27,7 +27,6 @@ fn main() {
             commands::start_logcat,
             commands::stop_logcat,
             commands::clear_logcat,
-            commands::stop_mirror,
             commands::host_platform,
             commands::tool_status,
             commands::list_devices,
@@ -35,7 +34,6 @@ fn main() {
             commands::set_brightness,
             commands::set_brightness_mode,
             commands::capture_screenshot,
-            commands::launch_mirror,
             commands::adb_pair,
             commands::adb_connect
         ])

@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::{
     collections::HashMap,
     env, fs,
@@ -64,9 +64,6 @@ pub struct ToolStatus {
     pub adb_found: bool,
     pub adb_version: Option<String>,
     pub adb_bundled: bool,
-    pub scrcpy_found: bool,
-    pub scrcpy_version: Option<String>,
-    pub scrcpy_bundled: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -88,37 +85,6 @@ pub struct DisplaySettings {
     pub automatic: bool,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase", default)]
-pub struct MirrorOptions {
-    /// None means the native device resolution.
-    pub max_size: Option<u16>,
-    /// None means no additional frame-rate cap.
-    pub max_fps: Option<u16>,
-    pub bitrate_mbps: u8,
-    pub video_codec: String,
-    pub audio_enabled: bool,
-    pub record_video: bool,
-}
-
-impl Default for MirrorOptions {
-    fn default() -> Self {
-        Self {
-            max_size: Some(1920),
-            max_fps: Some(60),
-            bitrate_mbps: 8,
-            video_codec: "h264".to_string(),
-            audio_enabled: true,
-            record_video: false,
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MirrorStartResult {
-    pub recording_file: Option<String>,
-}
 
 #[tauri::command]
 pub fn host_platform() -> &'static str {
@@ -191,18 +157,11 @@ fn output_text(output: &Output) -> String {
 
 #[tauri::command]
 pub fn tool_status(app: AppHandle) -> ToolStatus {
-    // Only inspect executable paths here. Running `scrcpy --version` during
-    // every device refresh can flash a Windows console even though the user
-    // did not ask to start a mirror session.
     let adb = resolve_tool(&app, "adb");
-    let scrcpy = resolve_tool(&app, "scrcpy");
     ToolStatus {
         adb_found: adb.is_some(),
         adb_version: None,
         adb_bundled: adb.as_ref().map(|(_, bundled)| *bundled).unwrap_or(false),
-        scrcpy_found: scrcpy.is_some(),
-        scrcpy_version: None,
-        scrcpy_bundled: scrcpy.as_ref().map(|(_, bundled)| *bundled).unwrap_or(false),
     }
 }
 
@@ -638,12 +597,6 @@ pub fn clear_logcat(app: AppHandle, serial: String) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-pub fn stop_mirror(processes: State<'_, ManagedProcesses>, serial: String) -> Result<(), String> {
-    validate_serial(&serial)?;
-    processes.stop(&format!("mirror:{serial}"));
-    Ok(())
-}
 
 fn home_dir(app: &AppHandle) -> Result<PathBuf, String> {
     env::var_os("USERPROFILE")
@@ -679,88 +632,3 @@ pub fn capture_screenshot(app: AppHandle, serial: String) -> Result<String, Stri
     Ok(file.to_string_lossy().to_string())
 }
 
-fn validate_mirror_options(options: &MirrorOptions) -> Result<(), String> {
-    if let Some(size) = options.max_size {
-        if size != 0 && !(320..=7680).contains(&size) {
-            return Err("La résolution maximale doit être comprise entre 320 et 7680 pixels.".to_string());
-        }
-    }
-    if let Some(fps) = options.max_fps {
-        if !(10..=240).contains(&fps) {
-            return Err("La fréquence d’images doit être comprise entre 10 et 240 FPS.".to_string());
-        }
-    }
-    if !(1..=40).contains(&options.bitrate_mbps) {
-        return Err("Le débit vidéo doit être compris entre 1 et 40 Mbit/s.".to_string());
-    }
-    if !["h264", "h265", "av1", "vp8", "vp9"].contains(&options.video_codec.as_str()) {
-        return Err("Codec vidéo non pris en charge.".to_string());
-    }
-    Ok(())
-}
-
-#[tauri::command]
-pub fn launch_mirror(
-    app: AppHandle,
-    processes: State<'_, ManagedProcesses>,
-    serial: String,
-    options: MirrorOptions,
-) -> Result<MirrorStartResult, String> {
-    validate_serial(&serial)?;
-    validate_mirror_options(&options)?;
-    processes.stop(&format!("mirror:{serial}"));
-    let (scrcpy, bundled) = resolve_tool(&app, "scrcpy")
-        .ok_or_else(|| "scrcpy n’est pas disponible dans cette installation.".to_string())?;
-
-    let mut args = vec!["--serial".to_string(), serial.clone()];
-    if let Some(size) = options.max_size.filter(|value| *value > 0) {
-        args.push(format!("--max-size={size}"));
-    }
-    if let Some(fps) = options.max_fps {
-        args.push(format!("--max-fps={fps}"));
-    }
-    args.push(format!("--video-bit-rate={}M", options.bitrate_mbps));
-    args.push(format!("--video-codec={}", options.video_codec));
-    if !options.audio_enabled {
-        args.push("--no-audio".to_string());
-    }
-
-    let recording_file = if options.record_video {
-        let video_library = if cfg!(target_os = "macos") { "Movies" } else { "Videos" };
-        let file = media_file(&app, video_library, "enregistrement", "mp4")?;
-        args.push(format!("--record={}", file.to_string_lossy()));
-        Some(file.to_string_lossy().to_string())
-    } else {
-        None
-    };
-
-    let mut command = Command::new(scrcpy);
-    // Keep the console process hidden on Windows while still allowing scrcpy's
-    // normal SDL mirror window to appear after an explicit user action.
-    hide_console(&mut command);
-    if bundled {
-        // scrcpy resolves adb by name; prioritize the copy bundled with the app.
-        if let Some((adb, true)) = resolve_tool(&app, "adb") {
-            if let Some(tools_dir) = adb.parent() {
-                let mut entries = vec![tools_dir.to_path_buf()];
-                if let Some(existing_path) = env::var_os("PATH") {
-                    entries.extend(env::split_paths(&existing_path));
-                }
-                let updated_path = env::join_paths(entries)
-                    .map_err(|error| format!("Impossible de préparer les outils intégrés : {error}"))?;
-                command.env("PATH", updated_path);
-            }
-        }
-    }
-
-    let child = command
-        .args(args)
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|error| format!("Impossible de démarrer scrcpy : {error}"))?;
-    processes.store(format!("mirror:{serial}"), child)?;
-
-    Ok(MirrorStartResult { recording_file })
-}

@@ -1,8 +1,7 @@
 # Third-party components
 
-Release builds fetch the official, version-pinned scrcpy archive for the target operating system and preserve its files—including its bundled `adb` executable, server, libraries and upstream license file—in the application resources.
+Builds bundle the official Android SDK Platform-Tools 37.0.1 package for the target operating system so Device Bridge can use ADB for device discovery, pairing, file operations and companion-app installation. The upstream archive is downloaded over HTTPS from `https://dl.google.com/android/repository/` and checked against the SHA-1 value published in Google's Android SDK repository metadata before extraction. The package's upstream notices are retained in the bundled resources.
 
-- **scrcpy:** Genymobile / Romain Vimont, Apache License 2.0. Official source and release packages: <https://github.com/Genymobile/scrcpy>.
-- **ADB:** the executable is supplied inside the official scrcpy release bundle. ADB is an Android Open Source Project component; consult the notices and license terms accompanying the bundled upstream package and the relevant AOSP sources.
+- **Android SDK Platform-Tools / ADB:** Android Open Source Project and Google. See the official [Platform-Tools release notes](https://developer.android.com/tools/releases/platform-tools) and the notices/license files shipped with the package.
 
-The build script verifies the archive against the release’s `SHA256SUMS.txt` before extraction. It does not modify the extracted binaries. Review all third-party licenses and notices for each upstream version before publishing a release; the project’s MIT license applies only to original Device Bridge code and does not replace upstream terms.
+The project does not bundle a third-party screen-mirroring executable. The MIT license applies only to original Device Bridge code and does not replace the licenses or terms accompanying Android Platform-Tools.

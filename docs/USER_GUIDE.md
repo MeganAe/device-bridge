@@ -1,6 +1,6 @@
 # Guide utilisateur
 
-Device Bridge est une application de bureau qui détecte des appareils Android et permet de les afficher depuis l’ordinateur. Les binaires ADB nécessaires sont fournis par les paquets de l’application : il n’est pas nécessaire d’installer ADB ou scrcpy séparément.
+Device Bridge est une application de bureau qui détecte et contrôle des appareils Android. ADB est fourni par le paquet. Le moteur de miroir maison est en développement et n’est pas encore disponible.
 
 ## Première connexion par USB
 
@@ -9,7 +9,7 @@ Device Bridge est une application de bureau qui détecte des appareils Android e
 3. Branchez le téléphone à l’ordinateur avec un câble compatible données et déverrouillez-le.
 4. Acceptez la demande **Autoriser le débogage USB** sur Android. Ne l’acceptez que sur un ordinateur de confiance.
 5. Dans Device Bridge, cliquez sur **Actualiser** ou **Rechercher les appareils**.
-6. Quand l’appareil est indiqué comme connecté, choisissez **Afficher l’écran** pour ouvrir le miroir.
+6. Une fois l’appareil connecté, les commandes ADB et les transferts sont disponibles. Le miroir vidéo est désactivé jusqu’à la sortie du moteur Device Bridge maison.
 
 ## Connexion sans fil
 
@@ -22,13 +22,11 @@ Android 11 ou une version ultérieure est recommandé pour le flux d’appairage
 5. Une fois l’appairage terminé, saisissez l’adresse IP et le port de débogage affichés sur l’écran principal de Débogage sans fil.
 6. Gardez le téléphone et l’ordinateur sur le même réseau. Le port sans fil peut changer après une reconnexion.
 
-## Affichage, contrôle et captures
+## Contrôles et captures
 
-- **Afficher l’écran** ouvre le miroir pour l’appareil sélectionné.
-- Le bouton de réglages de l’appareil donne accès à la luminosité, la qualité vidéo, l’audio et l’enregistrement disponibles dans la version actuelle.
-- **Capture d’écran** enregistre une image dans `Pictures/Device Bridge` du compte utilisateur ; les notifications natives peuvent être activées dans Paramètres.
-- **Enregistrer l’écran** démarre scrcpy avec l’enregistrement MP4 dans `Videos/Device Bridge` (Windows/Linux) ou `Movies/Device Bridge` (macOS). Fermez la fenêtre scrcpy pour terminer le fichier.
-- La qualité vidéo peut être réduite pour améliorer la fluidité sur un réseau lent ou un téléphone moins puissant.
+- Le bouton de réglages d’un appareil permet de régler sa luminosité si le fabricant autorise la commande.
+- **Capture d’écran** enregistre une image dans `Pictures/Device Bridge` ; les notifications natives peuvent être activées dans Paramètres.
+- Le miroir vidéo et l’enregistrement restent désactivés jusqu’à ce que le moteur propriétaire soit réellement développé et testé.
 
 ## Fichiers, journaux et commandes ADB
 
@@ -39,7 +37,7 @@ Android 11 ou une version ultérieure est recommandé pour le flux d’appairage
 - **Terminal ADB** envoie une commande `adb shell` à l’appareil actif. Une confirmation est demandée avant chaque commande ; vérifiez soigneusement les commandes sensibles.
 - Le menu **Aide → Vérifier les mises à jour** compare la version locale avec la dernière publication GitHub stable. Il n’installe rien automatiquement.
 
-Le moteur de miroir intégré utilise scrcpy et ADB ; les binaires sont fournis dans les paquets. scrcpy ne démarre que lorsque vous demandez explicitement le miroir. Voir [`MIRROR_ENGINE.md`](MIRROR_ENGINE.md).
+Le miroir final utilisera le moteur Device Bridge et un compagnon Android demandant le consentement système pour la capture. L’architecture et l’état d’avancement sont décrits dans [`MIRROR_ENGINE.md`](MIRROR_ENGINE.md).
 
 ## Fenêtre et navigation
 

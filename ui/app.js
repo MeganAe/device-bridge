@@ -22,7 +22,9 @@ let logcatPaused = false;
 let logcatEntries = [];
 let retrievingDeviceSerial = null;
 
-let currentTools = { adbFound: false, adbVersion: null, adbBundled: false, scrcpyFound: false, scrcpyVersion: null, scrcpyBundled: false };
+let currentTools = { adbFound: false, adbVersion: null, adbBundled: false };
+const MIRROR_ENGINE_READY = false;
+const MIRROR_ENGINE_NOTICE = 'Le moteur de miroir Device Bridge est en développement. Aucun programme de miroir tiers ne sera lancé.';
 let selectedDevice = null;
 const DEVICE_PREFERENCES_KEY = 'device-bridge:device-preferences';
 let devicePreferences = Object.create(null);
@@ -256,7 +258,7 @@ const MENU_DEFINITIONS = [
   {
     id: 'tools', label: 'Outils', items: [
       { label: 'Capture d’écran', action: 'screenshot', needsDevice: true },
-      { label: 'Enregistrer l’écran', action: 'record', needsDevice: true, needsScrcpy: true },
+      { label: 'Enregistrer l’écran', action: 'record', needsDevice: true, needsMirrorEngine: true },
       { type: 'separator' },
       { label: 'Ouvrir les journaux (logcat)', action: 'logcat', needsDevice: true },
       { label: 'Terminal ADB', action: 'terminal', needsDevice: true }
@@ -364,7 +366,7 @@ function openMenu(id, focusFirst = false) {
     const unavailableReason = entry.disabledReason
       || (entry.needsDevice && !activeDevice ? 'Connectez un appareil autorisé' : '')
       || (entry.needsWireless && activeDevice?.connectionType !== 'Wi-Fi' ? 'Disponible uniquement pour une connexion Wi-Fi' : '')
-      || (entry.needsScrcpy && !currentTools.scrcpyFound ? 'scrcpy est introuvable' : '');
+      || (entry.needsMirrorEngine && !MIRROR_ENGINE_READY ? MIRROR_ENGINE_NOTICE : '');
     if (unavailableReason || !entry.action || !MENU_ACTIONS[entry.action]) {
       item.disabled = true;
       item.title = unavailableReason || 'Action indisponible';
@@ -876,7 +878,7 @@ function renderDevices(devices) {
   for (const device of devices) {
     const label = device.model || device.product || 'Appareil Android';
     const authorized = device.state === 'device';
-    const canMirror = authorized && currentTools.scrcpyFound;
+    const canMirror = authorized && MIRROR_ENGINE_READY;
     const metadata = [
       device.androidVersion ? `Android ${device.androidVersion}` : '',
       device.batteryLevel != null ? `Batterie ${device.batteryLevel} %` : '',
@@ -899,7 +901,7 @@ function renderDevices(devices) {
       </div>
       <span class="device-state">${escapeHtml(deviceStateText(device.state))}</span>
       <div class="device-actions">
-        <button class="button button-secondary device-action" type="button" data-action="mirror" data-serial="${escapeHtml(device.serial)}" ${canMirror ? '' : 'disabled'}>Afficher l’écran</button>
+        <button class="button button-secondary device-action" type="button" data-action="mirror" data-serial="${escapeHtml(device.serial)}" title="${escapeHtml(MIRROR_ENGINE_NOTICE)}" ${canMirror ? '' : 'disabled'}>Afficher l’écran</button>
         <button class="device-settings-button" type="button" data-action="settings" data-serial="${escapeHtml(device.serial)}" data-label="${escapeHtml(label)}" ${authorized ? '' : 'disabled'} aria-label="Réglages de l’appareil" title="Réglages">
           <svg aria-hidden="true"><use href="#i-settings"></use></svg>
         </button>
@@ -918,7 +920,7 @@ function renderDevices(devices) {
 
 async function refreshTools() {
   if (!isDesktopApp) {
-    renderToolStatus({ adbFound: false, adbBundled: false, scrcpyFound: false, scrcpyBundled: false });
+    renderToolStatus({ adbFound: false, adbVersion: null, adbBundled: false });
     return;
   }
   try {
@@ -970,7 +972,6 @@ async function refreshDevices(notifyNewDevices = true) {
     for (const serial of disconnectedSerials) {
       if (logcatSerial === serial) void closeLogcatPanel();
       else void tauriInvoke('stop_logcat', { serial }).catch(() => {});
-      void tauriInvoke('stop_mirror', { serial }).catch(() => {});
       if (selectedDevice?.serial === serial) selectedDevice = null;
     }
     if (initialDeviceScanComplete && notifyNewDevices) {
@@ -995,26 +996,10 @@ function defaultMirrorOptions() {
   return { maxSize: 1920, maxFps: 60, bitrateMbps: 8, videoCodec: 'h264', audioEnabled: true, recordVideo: false };
 }
 
-async function launchMirror(serial, options = defaultMirrorOptions(), closeSettings = false) {
-  if (!isDesktopApp) {
-    setStatus(operationStatus, 'Contrôle disponible dans l’application de bureau.', '');
-    return;
-  }
-  if (!currentTools.scrcpyFound) {
-    setStatus(operationStatus, 'scrcpy absent.', 'error');
-    return;
-  }
-  try {
-    const result = await tauriInvoke('launch_mirror', { serial, options });
-    const message = result.recordingFile
-      ? `Enregistrement : ${result.recordingFile} · fermez scrcpy pour terminer.`
-      : 'Fenêtre scrcpy ouverte.';
-    setStatus(operationStatus, message, 'success');
-    if (closeSettings && displayDialog.open) displayDialog.close();
-  } catch (error) {
-    const target = displayDialog.open ? $('#display-status') : operationStatus;
-    setStatus(target, String(error), 'error');
-  }
+function launchMirror() {
+  const target = displayDialog.open ? $('#display-status') : operationStatus;
+  setStatus(target, MIRROR_ENGINE_NOTICE);
+  showToast(MIRROR_ENGINE_NOTICE, 'info');
 }
 
 function updateBrightnessLabel() {
@@ -1287,11 +1272,20 @@ function setupNavigation() {
   });
 }
 
+function setupContextMenu() {
+  document.addEventListener('contextmenu', (event) => {
+    const target = event.target;
+    if (target?.closest?.('input, textarea, select, [contenteditable="true"], .logcat-lines, .terminal-output')) return;
+    event.preventDefault();
+  });
+}
+
 setupPlatformStyle();
 setupSettings();
 setupWindowControls();
 setupMenus();
 setupNavigation();
+setupContextMenu();
 $('#refresh-button').addEventListener('click', () => { void refreshDevices(); });
 $('#usb-search-button').addEventListener('click', () => { void refreshDevices(); });
 $('#wifi-open-button').addEventListener('click', openPairDialog);
@@ -1332,7 +1326,7 @@ $('#logcat-copy').addEventListener('click', () => { void copyLogcat(); });
 $('#logcat-clear').addEventListener('click', () => { void clearLogcat(); });
 
 if (!isDesktopApp) {
-  renderToolStatus({ adbFound: false, adbBundled: false, scrcpyFound: false, scrcpyBundled: false });
+  renderToolStatus({ adbFound: false, adbVersion: null, adbBundled: false });
   renderDevices([]);
   setStatus(operationStatus, 'Aperçu web — la connexion Android fonctionne dans l’application de bureau.');
 } else {

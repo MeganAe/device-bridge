@@ -287,7 +287,7 @@
                 <li><strong>Envoyer un fichier…</strong> copie le fichier vers le dossier Android Download avec progression.</li>
                 <li><strong>Récupérer un fichier…</strong> accepte un chemin Android absolu, par exemple <code>/sdcard/Download/rapport.pdf</code>.</li>
                 <li><strong>Logcat</strong> montre les journaux en direct ; le terminal ADB exécute une commande après confirmation. Vérifiez toute commande avant de l’envoyer.</li>
-                <li>Les captures et notifications se configurent dans Paramètres ; l’enregistrement vidéo se règle depuis le bouton de paramètres de l’appareil.</li>
+                <li>Les captures et notifications se configurent dans Paramètres ; les réglages vidéo restent désactivés jusqu’à l’intégration du moteur maison.</li>
                 <li>La vérification des mises à jour compare la version à la dernière publication GitHub et ouvre sa page sur demande ; rien n’est installé automatiquement.</li>
               </ul>
             </section>
@@ -448,7 +448,7 @@
         </div>
         <div class="settings-grid">
           <label class="field-label" for="max-size">Résolution maximale
-            <select id="max-size">
+            <select id="max-size" disabled>
               <option value="1280">1280 px</option>
               <option value="1600">1600 px</option>
               <option value="1920" selected>1920 px</option>
@@ -457,7 +457,7 @@
             </select>
           </label>
           <label class="field-label" for="max-fps">Images par seconde
-            <select id="max-fps">
+            <select id="max-fps" disabled>
               <option value="30">30 FPS</option>
               <option value="45">45 FPS</option>
               <option value="60" selected>60 FPS</option>
@@ -467,7 +467,7 @@
             </select>
           </label>
           <label class="field-label" for="bitrate-mbps">Débit vidéo
-            <select id="bitrate-mbps">
+            <select id="bitrate-mbps" disabled>
               <option value="2">2 Mbit/s</option>
               <option value="4">4 Mbit/s</option>
               <option value="8" selected>8 Mbit/s</option>
@@ -477,7 +477,7 @@
             </select>
           </label>
           <label class="field-label" for="video-codec">Codec vidéo
-            <select id="video-codec">
+            <select id="video-codec" disabled>
               <option value="h264" selected>H.264 — compatible</option>
               <option value="h265">H.265 — efficace</option>
               <option value="av1">AV1</option>
@@ -486,25 +486,26 @@
             </select>
           </label>
         </div>
-        <p class="settings-note">La compatibilité de l’audio et des codecs dépend de la version Android et du téléphone.</p>
+        <p class="settings-note">Les réglages vidéo et audio sont inactifs jusqu’à l’intégration du moteur Device Bridge.</p>
       </section>
 
       <div class="method-divider"></div>
 
       <section class="setting-section media-options" aria-label="Audio et enregistrement">
         <label class="check-row" for="audio-enabled">
-          <input id="audio-enabled" type="checkbox" checked>
+          <input id="audio-enabled" type="checkbox" checked disabled>
           <span>Audio du téléphone</span>
         </label>
         <label class="check-row" for="record-video">
-          <input id="record-video" type="checkbox">
+          <input id="record-video" type="checkbox" disabled>
           <span>Enregistrer la session en MP4</span>
         </label>
       </section>
 
+      <p class="settings-note" id="mirror-engine-status">Le moteur vidéo Device Bridge n’est pas encore implémenté. Aucun moteur tiers ne sera lancé.</p>
       <div class="dialog-footer">
         <button class="button button-secondary" type="button" id="screenshot-button">Capture d’écran</button>
-        <button class="button button-primary" type="button" id="mirror-start-button">Démarrer le miroir</button>
+        <button class="button button-primary" type="button" id="mirror-start-button" disabled title="Le moteur Device Bridge n’est pas encore implémenté.">Démarrer le miroir</button>
       </div>
       <p class="dialog-status display-status" id="display-status" role="status" aria-live="polite"></p>
     </div>

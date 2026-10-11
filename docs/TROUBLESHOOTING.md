@@ -1,6 +1,6 @@
 # Dépannage
 
-Device Bridge est prévu pour fournir ses outils Android dans l’application installée. L’utilisateur n’a pas à télécharger ni installer ADB ou scrcpy séparément. Les étapes ci-dessous servent à isoler le problème ; elles ne remplacent pas un correctif si l’erreur persiste.
+Device Bridge embarque Android SDK Platform-Tools/ADB pour les opérations Android. Le moteur vidéo maison n’est pas encore livré. Les étapes ci-dessous servent à isoler les problèmes de connexion et d’installation ; elles ne remplacent pas un correctif si l’erreur persiste.
 
 ## Aucun appareil détecté
 
@@ -9,6 +9,10 @@ Device Bridge est prévu pour fournir ses outils Android dans l’application in
 3. Essayez un câble USB capable de transférer des données et un autre port de l’ordinateur.
 4. Cliquez sur **Actualiser**. Pour le sans-fil, vérifiez que le débogage sans fil est actif et que les deux appareils sont sur le même réseau local.
 5. Fermez puis relancez Device Bridge. Ne supprimez pas les outils embarqués et n’installez pas un second ADB comme solution de contournement.
+
+## Miroir vidéo indisponible
+
+Les boutons miroir et enregistrement sont volontairement désactivés pendant le développement du moteur vidéo Device Bridge. Cette version ne lance ni n’installe de moteur de miroir tiers. Ce n’est pas une panne de l’appareil : le moteur maison n’est pas encore intégré.
 
 ## Fenêtre noire au démarrage (Windows)
 

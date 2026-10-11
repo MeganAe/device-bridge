@@ -17,7 +17,7 @@ Le workflow est déclenché uniquement à la demande (`workflow_dispatch`). Il c
 | macOS | macOS 14 et 15 | application/macOS bundle pour l’architecture native du runner |
 | Linux | Ubuntu 22.04 et 24.04 | paquets générés par Tauri pour Linux |
 
-Chaque job prépare les outils avant l’empaquetage : il télécharge l’archive officielle scrcpy 5.0.1 correspondant au système/architecture, vérifie son SHA-256 avec le manifeste amont, puis inclut ses fichiers comme ressources Tauri. Les archives officielles contiennent scrcpy et ADB ; ainsi, une personne qui installe l’application n’a pas à les installer séparément. Les binaires restent hors du dépôt Git pour garder le code source léger. Le numéro de version scrcpy se met à jour dans `scripts/prepare_tools.py`.
+Chaque job prépare uniquement Android SDK Platform-Tools 37.0.1 pour le système cible, vérifie la somme SHA-1 publiée dans les métadonnées Google, puis inclut ADB et ses bibliothèques nécessaires comme ressources Tauri. Aucun moteur tiers de miroir n’est empaqueté. Les binaires téléchargés restent hors du dépôt Git. La version vérifiée se trouve dans `scripts/prepare_tools.py`.
 
 Les runners permettent de contrôler plusieurs environnements de compilation. Ils ne garantissent pas, à eux seuls, que chaque ancien système d’exploitation cible fonctionnera : la compatibilité doit être testée sur de vraies versions de Windows, macOS et distributions Linux. Pour un binaire macOS universel Intel + Apple Silicon, il faudra ajouter explicitement une construction `universal-apple-darwin` et les cibles Rust correspondantes.
 
